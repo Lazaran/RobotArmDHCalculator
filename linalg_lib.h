@@ -150,6 +150,7 @@ int getVectorMagnitude(vector<int> vec){
 int findRotationAboutAxis(vector<int> rotation_axis, vector<int> start_axis, vector<int> final_axis){
     // Flips the final rotation direction based on previous X starting axis
     int start_flip = 0;
+    int rotation_angle = 0;
     switch (mapOrientationToAxis(rotation_axis)) {
         // World X axis (1,0,0) = Previous Z 
         case 1:
@@ -222,13 +223,14 @@ int findRotationAboutAxis(vector<int> rotation_axis, vector<int> start_axis, vec
             break;
         // Check for sign flip between current and previous axes
         // Assuming sign flip is positive until specified otherwise, which start_flip sets based on which world axes the rotation is happening around and which axis the rotation starts at
-        if ((getVectorMagnitude(start_axis) + getVectorMagnitude(final_axis)) == 0){
-            return (start_flip*90);
-        } 
-        else { 
-            return (start_flip*(-90));
-        };
     };
+    if ((getVectorMagnitude(start_axis) + getVectorMagnitude(final_axis)) == 0){
+        rotation_angle = (start_flip*90);
+    } 
+    else { 
+        rotation_angle = (start_flip*(-90));
+    };
+    return rotation_angle;
 };
 
 // Find the DH parameter 'a' between two joints

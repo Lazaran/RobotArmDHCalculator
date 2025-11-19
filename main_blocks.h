@@ -1,5 +1,5 @@
-#ifndef MAIN_BLOCKS.H
-#define MAIN_BLOCKS.H
+#ifndef MAIN_BLOCKS_H
+#define MAIN_BLOCKS_H
 
 // Standard Libraries
 #include <vector>
@@ -35,20 +35,20 @@ void ChangeJointConfiguration(vector<Joint>& Joints);
 
 // Prints Joints Configuration
 void JointConfigurationReview(vector<Joint>& Joints){
-    cout << "\n===========================\n";
-    cout << "\nJoint Configuration Review:\n";
+    cout << "\n===========================";
+    cout << "\nJoint Configuration Review:";
     cout << "\n===========================\n";
     // Loop through joints and print their parameters
     for (int i = 0; i < Joints.size(); i++) {
-        cout << "| Joint " << i << ":\n";
+        cout << "\n| Joint " << i << ":\n";
         cout << "|  Joint Index: " << Joints.at(i).getIndex() << endl;
         cout << "|  Joint Type: " << boolToStr_JointType(Joints.at(i).getisRevolute()) << endl;
         cout << "|  Joint Z Orientation: " << stringFromIntVector(Joints.at(i).getZaxis()) << endl;
         cout << "|  Joint X Orientation: " << stringFromIntVector(Joints.at(i).getXaxis()) << endl;
         cout << "|  Joint Position: " << stringFromIntVector(Joints.at(i).getOriginPos()) << endl;            
     };
-    cout << "\n===========================\n";
-    cout << "\n    End of Joint Review    \n";
+    cout << "\n===========================";
+    cout << "\n    End of Joint Review    ";
     cout << "\n===========================\n";
 };
 

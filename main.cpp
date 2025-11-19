@@ -25,9 +25,9 @@ using namespace std;
 int main() {
 
     // Main Loop Variables
-    bool mainLoop;
-    bool mainLoopConfirm;
-    int numJoints;
+    bool mainLoop = true;
+    bool mainLoopConfirm = false;
+    int numJoints = 0;
     vector<Joint> Joints;
 
     // Main Program Loop
@@ -148,7 +148,7 @@ int main() {
                 default:
                 cout << "\nInvalid Input. Please Try again!";
             };
-            if (!mainLoopConfirm){
+            if (mainLoopConfirm){
                 break;
             };
         };
