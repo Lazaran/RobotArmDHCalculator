@@ -1,111 +1,97 @@
 #ifndef JOINT_H
 #define JOINT_H
 
+// Standard Libraries
 #include <vector>
+
+// Using standard namespace
 using namespace std;
 
+// Custom Libraries
+#include "input_lib.h"
+
+// Joint Class Definition
 class Joint {
 private:
-    // Joint Number
+    // Joint Index
     int JointIndex;
     // Joint Type: true = revolute, false = prismatic
     bool isRevolute; 
-    // Z Orientation relative to base frame
+    // Z Orientation relative to base frame; (1,0,0), (0,1,0), (0,0,1)
     vector<int> ZaxisOrientation;
-    // X Orientation relative to base frame
+    // X Orientation relative to base frame; (1,0,0), (0,1,0), (0,0,1)
     vector<int> XaxisOrientation;
-    // World Frame Position
-    vector<float> Position;
+    // Origin Position
+    vector<int> originPosition;
 
 public:
 
     // Joint Class Constructor
-
-    Joint(int index, bool jointType, vector<int> Zaxis, vector<float> position) {
+    Joint(int index, bool jointType, vector<int> Zaxis, vector<int> origin) {
         JointIndex = index;
         isRevolute = jointType;
         ZaxisOrientation = Zaxis;
-        Position = position;
+        originPosition = origin;
+        XaxisOrientation = {0,0,0}; // Default X axis, to be set later
     }
 
     // Joint Class Getters
 
+    // Get Joint Index
     int getIndex() {
         return JointIndex;
     };
 
+    // Get Joint Type
     bool getisRevolute() {
         return isRevolute;
     };
 
+    // Get Z Orientation
     vector<int> getZaxis() {
         return ZaxisOrientation;
     };
 
+    // Get X Orientation
     vector<int> getXaxis() {
         return XaxisOrientation;
     };
 
-    vector<float> getPos() {
-        return Position;
-    };
-
-    float getXpos() {
-        return Position[0];
-    };
-
-    float getYpos() {
-        return Position[1];
-    };
-
-    float getZpos() {
-        return Position[2];
+    // Get Origin Position
+    vector<int> getOriginPos() {
+        return originPosition;
     };
 
     // Joint Class Setters
 
+    // Set Joint Index
     void setIndex(int index) {
         JointIndex = index;
         return;
     };
 
+    // Set Joint Type
     void setisRevolute(bool jointType) {
         isRevolute = jointType;
         return;
     };
 
-    void setZaxis(vector<int> Zorientation) {
-        ZaxisOrientation = Zorientation;
+    // Set Z Orientation
+    void setZaxis(vector<int> axis) {
+        ZaxisOrientation = axis;
         return;
     };
 
-    void setXaxis(vector<int> Xorientation) {
-        XaxisOrientation = Xorientation;
+    // Set X Axis Orientation
+    void setXaxis(vector<int> axis) {
+        XaxisOrientation = axis;
         return;
     };
 
-    void setPos(vector<float> position) {
-        Position = position;
+    // Set Position
+    void setPosition(vector<int> pos) {
+        originPosition = pos;
         return;
     };
-
-    void setXpos(float xPosition) {
-        Position[0] = xPosition;
-        return;
-    };
-
-    void setYpos(float yPosition) {
-        Position[1] = yPosition;
-        return;
-    };
-
-    void setZpos(float zPosition) {
-        Position[2] = zPosition;
-        return;
-    };
-
-
 };
-
-
 #endif // JOINT_H

@@ -1,195 +1,158 @@
+// main.cpp : This file contains the 'main' function. Program execution begins and ends there.
+// This program takes robotic arm joint info and produces a DH table
+// and the Forward Kinematic Equations for a given arm configuration.
+// Written by: Senoga Kaweesa, Sergey Mizerin, Qwyntyn Scurr, n
+
+// include standard libraries
 #include <iostream>
 #include <string>
 #include <vector>
 #include <sstream>
+#include <algorithm>
+#include <cstring>
 
-#include "joint.h"
+// Using standard namespace
 using namespace std;
 
-int getInputInt(){
-    int num;
-    string line;
-    getline(cin, line);
-    stringstream ss(line);
-    ss >> num;
-    return num;
-};
+// Include custom libraries
+#include "joint.h"
+#include "input_lib.h"
+#include "transform_matrix.h"
+#include "buildjoint.h"
+#include "main_blocks.h"
 
-string getInputStr(){
-    string line;
-    getline(cin, line);
-    return line;
-};
-
-// Convert string input to boolean for joint type
-bool strToBool(const string& str) {
-    if (str == "R" || str == "r") {
-        return true; // Revolute
-    } else if (str == "P" || str == "p") {
-        return false; // Prismatic
-    } else {
-        throw invalid_argument("Invalid joint type. Use 'R' for Revolute or 'P' for Prismatic.");
-    }
-};
-
-// Build vector<int> from comma-separated string
-// Holding on to the brackets, gotta remove them so the parsing works
-vector<int> BuildIntVectorFromString(string inputStr) {
-    vector<int> result;
-    stringstream ss(inputStr);
-    string item;
-
-    while (getline(ss, item, ',')) {
-        if (!item.empty()) {
-            cout << item << " penis\n";
-            result.push_back(stoi(item));
-        }
-    }
-
-    return result;
-}
-
-// Build vector<float> from comma-separated string
-vector<float> BuildFloatVectorFromString(string inputStr) {
-    vector<float> result;
-    result.reserve(3);
-    stringstream ss(inputStr);
-    float tempNum;
-    string item;
-    for (int i = 0; i < 3; i++) {
-        getline(ss, item, ',');
-        stringstream ss_item(item);
-        ss_item >> tempNum;
-        result[i] = tempNum;
-    }
-    return result;
-};
-
-// Convert vector<int> to string for display
-string stringFromIntVector(const vector<int>& vec) {
-    string result = "(";
-    for (size_t i = 0; i < vec.size(); ++i) {
-        result += to_string(vec[i]);
-        if (i < vec.size() - 1) {
-            result += ",";
-        }
-    }
-    result += ")";
-    return result;
-};
-
-// Convert vector<float> to string for display
-string stringFromFloatVector(const vector<float>& vec) {
-    string result = "(";
-    for (size_t i = 0; i < vec.size(); ++i) {
-        result += to_string(vec[i]);
-        if (i < vec.size() - 1) {
-            result += ",";
-        }
-    }
-    result += ")";
-    return result;
-};
-
-// Build Joint Vector by inputting joint parameters
-void BuildJointVector(int currentJoint, vector<Joint>& Joints) {
-        string temp;
-        cout << "\nIs this Joint Revolute or Prismatic? (R/P): ";
-        bool jointType = strToBool(getInputStr());
-        cout << "\nJoint Orientations are limited to 90 degree rotations\n";
-        cout << "Enter the orientation of the Z axis of Joint " << currentJoint << ", eg (0,0,1) for +Z, (0,-1,0) for -Y, etc: ";
-        vector<int> jointOrientation = BuildIntVectorFromString(getInputStr());
-        cout << jointOrientation[0];
-        cout << jointOrientation[1];
-        cout << jointOrientation[2];
-        cout << "Enter the position of Joint " << currentJoint << ": ";
-        vector<float> jointPosition = BuildFloatVectorFromString(getInputStr());
-        Joints.push_back(Joint(currentJoint, jointType, jointOrientation, jointPosition));
-
-    };
-
-string checkJointType(bool jointType) {
-    if (jointType) {
-        return "Revolute";
-    } 
-    else {
-        return "Prismatic";
-    };
-;}
-
-
+// Main Program
 int main() {
 
-    bool mainloop = true;
-    string startCode;
-    string confirmCode;
+    // Main Loop Variables
+    bool mainLoop;
+    bool mainLoopConfirm;
     int numJoints;
+    vector<Joint> Joints;
 
-    while (mainloop) {
+    // Main Program Loop
+    while (true) {
 
-        cout << "Welcome to the DH Calculator!\n";
-        cout << "This program takes robotic arm joint info and produces a DH table\n";
-        cout << "and the Forward Kinematic Equations for a given arm configuration.\n";
-        cout << "If you are ready to begin, press Y to continue, otherwise press N to exit: ";
-
-        // Read Y/N input
-        startCode = getInputStr();
-        if (startCode.empty() || !(startCode[0] == 'Y' || startCode[0] == 'y')) {
-            mainloop = false;
-            break;
-        }
+        // Welcome Message
+        cout << "\nWelcome to the DH Calculator!";
+        cout << "\nThis program takes robotic arm joint info and produces a DH table";
+        cout << "\nand the Forward Kinematic Equations for a given arm configuration.";
         
-        cout << "\nGlad to have you onboard!\n";
-
-        // Input number of Joints
+        // Read Y/N input
         while (true) {
+            // Check if user wants to start the program
+            string queryText = "\nIf you are ready to begin, press Y to continue, otherwise press N to exit: ";
+            mainLoop = boolYNQuerySelection(queryText, "\nGlad to have you onboard!\n", "\nLeaving so soon?", "\nInvalid input.", true);
+            // Double check if user wants to exit
+            if (!(mainLoop)) {
+                mainLoopConfirm = boolYNQuerySelection("\nAre you sure you want to quit?: ", "\nGoodbye!", "\nGlad you're sticking around!", "\nInvalid input.", true);
+                // Confirm exit choice
+                if (!mainLoopConfirm){
+                    continue;
+                };
+            };
+            break;
+        };
+        // Exit main program if user chooses N
+        if (mainLoopConfirm) {
+            break;
+        };
+        
+        // Input number of joints
+        while (true) {
+            // Get the number of joints in the arm
             cout << "\nHow many joints are in your robotic arm: ";
             numJoints = getInputInt();
+            // Validate input
             if (numJoints > 0) {
+                cout << "\nYou have specified that your arm will have " << numJoints << " joints.";
+                string confirmText = string("\nThank you, your arm has ") + to_string(numJoints) + " joints.\n";
+                // Confirm number of joints
+                bool confirmNumJoints = boolYNQuerySelection("\nIs this correct? (Y/N): ", confirmText, "\nLet's try again.", "\nInvalid input. .", true);
+                // Restart input if confirmation denied
+                if (!(confirmNumJoints)) {
+                    continue;
+                };
+                Joints.reserve(numJoints);
                 break;  // success
+            }
+            // Handle invalid input
+            else {
+                cout << "\nInvalid input. Please enter a positive integer.";
             };
-            cout << "Invalid input. Please enter a positive integer.\n";
-            cout << "\n You have specified that your arm will have " << numJoints << " joints.\n";
-            cout << "Is this correct? (Y/N): ";
-            confirmCode = getInputStr();
-            if (!(confirmCode.empty() || !(startCode[0] == 'Y' || startCode[0] == 'y'))) {
-                break;
-            };
-            cout << "Let's try again.\n";
         };
 
-        cout << "Let's begin inputting the joint parameters.\n";
-        
-        vector<Joint> Joints;
-        Joints.reserve(numJoints);
         // Start inputting joint parameters
-        cout << "Inputting Base Joint Parameters:\n";
-        cout << "Is your base joint Revolute or Prismatic? (R/P): ";
+        cout << "\nLet's begin inputting the joint parameters.";
+        cout << "\nInputting Base Joint Parameters: \n";
 
         // Input base joint type
-        bool baseJointType = strToBool(getInputStr());
-        Joints.push_back(Joint(0, baseJointType, {0,0,1}, {0.0,0.0,0.0})); // Base Joint
-        cout << "Base Joint set as Joint 0, and is " << checkJointType(baseJointType) << " with default Z orientation (0,0,1) and Position (0.0,0.0,0.0)\n";
-        
+        while (true) {
+            // Get base joint type
+            bool baseJointType = modifyJointType(0);
+            // Get base joint Z orientation
+            vector<int> baseJointOrientation = modifyJointOrientation(0);
+            // Add base joint to joint vector
+            Joints.push_back(Joint(0, baseJointType, baseJointOrientation, vector<int>{0,0,0}));
+            cout << "\nBase Joint set as Joint " << Joints.at(0).getIndex() << ", and is " << boolToStr_JointType(Joints.at(0).getisRevolute()) << " with default Z Orientation " << stringFromIntVector(Joints.at(0).getZaxis()) << " and Position " << stringFromIntVector(Joints.at(0).getZaxis()) << ".\n";
+            break;
+        };
+
         // Input remaining joint parameters
         for (int i = 1; i < numJoints; i++) {
-            while (true){
-                // Input joint parameters
-                cout << "\nInputting Parameters for Joint " << i << ":\n";
-                BuildJointVector(i, Joints);
-                // Confirm joint parameters
-                cout << "Joint " << Joints[i].getIndex() << " is " << checkJointType(Joints[i].getisRevolute()) << "with Z orientation " << stringFromIntVector(Joints[i].getZaxis()) << " and Position " << stringFromFloatVector(Joints[i].getPos()) << " \n";
-                cout << "Is this correct? (Y/N): ";
-                confirmCode = getInputStr();
-                // If confirmed, break loop
-                if (!(confirmCode.empty() || !(startCode[0] == 'Y' || startCode[0] == 'y'))) {
-                    "Then Try again!\n";
-                    continue;
-                }
-                break;         
+            // Input joint parameters
+            cout << "\nInputting Parameters for Joint " << i << ": ";
+            Joints.push_back(BuildJoint(i));
+            // Confirm joint parameters
+        };
+
+        cout << "\nAll Joints have been inputted successfully!\n";
+    
+
+        // Menu Options
+        while (true){
+            // Internal X axis calculation for each joint based on Z axis orientations 
+            // Done at the top of every menu loop to ensure X axes are always up to date
+            CalculateXOrientations(Joints);
+
+            // Display Menu Options
+            cout << "\nWhat would you like to do next?:";
+            cout << "\n  1: Review Joint Configuration.";
+            cout << "\n  2: Calculate DH Table.";
+            cout << "\n  3: Change Joint Configuration.";
+            cout << "\n  4: Exit Program.";
+            cout << "\nSelecting: ";
+            int menuChoice = getInputInt();
+            // Select Option from Menu
+            switch(menuChoice){
+                case 1:
+                    // Review Joint Configuration
+                    cout << "\nYou've selected to review your joint configuration.";
+                    JointConfigurationReview(Joints);
+                    break;
+                // Calculate DH Table
+                case 2:
+                    cout << "\nYou've selected to calculate the DH table.";
+                    CalculateDH_Table(Joints);
+                    break;
+                // Change Joint Configuration    
+                case 3:
+                    cout << "\nYou've selected to change your joint configuration";
+                    ChangeJointConfiguration(Joints);
+                    break;
+                // Exit Program
+                case 4:
+                    // Confirm exit choice
+                    mainLoopConfirm = boolYNQuerySelection("\nAre you sure you want to quit?: ", "\nGoodbye!", "\nGlad you're sticking around!", "\nInvalid input.", true);
+                    break;
+                default:
+                cout << "\nInvalid Input. Please Try again!";
+            };
+            if (!mainLoopConfirm){
+                break;
             };
         };
+        break;
     };
-    cout << "Exiting Program. Goodbye!\n";
     return 0;
 };
