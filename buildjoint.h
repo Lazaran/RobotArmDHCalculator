@@ -144,6 +144,4 @@ Joint BuildJoint(int idxJoint){
     return Joint(idxJoint, jointType, jointOrientation, jointPosition);
 };
 
-
-
 #endif // BUILDJOINT_H

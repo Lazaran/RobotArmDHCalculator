@@ -1,7 +1,7 @@
 // main.cpp : This file contains the 'main' function. Program execution begins and ends there.
 // This program takes robotic arm joint info and produces a DH table
 // and the Forward Kinematic Equations for a given arm configuration.
-// Written by: Senoga Kaweesa, Sergey Mizerin, Qwyntyn Scurr
+// Written by: Qwyntyn Scurr
 
 // include standard libraries
 #include <iostream>
@@ -17,7 +17,6 @@ using namespace std;
 // Include custom libraries
 #include "joint.h"
 #include "input_lib.h"
-#include "transform_matrix.h"
 #include "buildjoint.h"
 #include "main_blocks.h"
 
